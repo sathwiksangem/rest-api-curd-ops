@@ -18,6 +18,9 @@ func main() {
 
 	r := gin.Default()
 
+	// Apply middleware to all routes
+	r.Use(AuthMiddleware())
+
 	r.POST("/item", func(c *gin.Context) {
 		var item types.Item
 		if err := c.ShouldBindJSON(&item); err != nil {
@@ -66,4 +69,17 @@ func main() {
 	fmt.Println("starting server on port 8080")
 
 	r.Run(":8080")
+}
+
+// Test Middleware for authorization
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader != "testToken" { // pass your actual token and validate it against JWK/JWT
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
 }
